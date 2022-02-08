@@ -1,8 +1,3 @@
-
-/**
- * Module dependencies.
- */
-
 var express = require('express');
 var routes = require('./routes');
 var http = require('http');
@@ -15,12 +10,8 @@ var cassandrainfo = require('./routes/cassandrainfo');
 
 var app = express();
 
-var cassandra = require('cassandra-driver');
-
-const client = new cassandra.Client({contactPoints: [process.env.CASSANDRA_IP || 'cassandra']});
-
 // all environments
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3030);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.logger('dev'));
@@ -34,6 +25,8 @@ app.get('/', routes.index);
 app.get('/cassandrainfo', cassandrainfo.init_cassandra);
 app.get('/customers', customers.list);
 app.get('/customers/add', customers.add);
+app.get('/customers/import', customers.import_customers);
+app.get('/customers/export', customers.export_customers);
 app.post('/customers/add', customers.save);
 app.get('/customers/delete/:id', customers.delete_customer);
 app.get('/customers/edit/:id', customers.edit);

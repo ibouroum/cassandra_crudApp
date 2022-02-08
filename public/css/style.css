@@ -33,7 +33,9 @@ a {
     width: 95%;
     background:#007CA8;color:#FEFFFD;
 }
-
+.bn {
+    display: inline-block;
+}
 .page-header h2 {
     padding: 10px;
     #width: 60%;

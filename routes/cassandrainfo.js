@@ -1,6 +1,6 @@
 var cassandra = require('cassandra-driver');
 
-var client = new cassandra.Client({contactPoints: [process.env.CASSANDRA_IP || 'cassandra']});
+var client = new cassandra.Client({contactPoints:  ['127.0.0.1'], localDataCenter: 'datacenter1'});
 
 /*
  * GET home page.

@@ -1,18 +1,17 @@
 var cassandra = require('cassandra-driver');
+var fs = require("fs");
+const csv = require("csv-parser");
 
-var client = new cassandra.Client({contactPoints: [process.env.CASSANDRA_IP || 'cassandra']});
+var client = new cassandra.Client({contactPoints:  ['127.0.0.1'], localDataCenter: 'datacenter1'});
 client.connect(function(err, result){
 	console.log('customers: cassandra connected');
 });
 
 
-/*
- * GET users listing.
- */
 exports.list = function(req, res){
 
 	console.log('customers: list');
-	client.execute('SELECT * FROM people.subscribers',[], function(err, result){
+	client.execute('SELECT * FROM people.subscribers ',[], function(err, result){
 		if(err){
 			console.log('customers: list err:', err);
 			res.status(404).send({msg: err});
@@ -104,4 +103,64 @@ exports.delete_customer = function(req,res){
 
 };
 
+exports.import_customers = function(req,res){
+    var input = fs.createReadStream("./customers.csv");
+    input.pipe(csv({ delimiter: ";" })).on("data", (row) => {
+    const myArray = Object.values(row);
+    var x = myArray[0].split(";");
+    client.execute(
+        "INSERT INTO people.subscribers (id, name, address, email, phone) VALUES (now(), '" +
+        x[0] +
+        "', '" +
+        x[1] +
+        "', '" +
+        x[2] +
+        "','" +
+        x[3] +
+        "')",
+        [],
+        function (err, result) {
+        if (err) {
+            console.log("customers: add err:", err);
+            res.status(404).send({ msg: err });
+        } 
+        }
+		
+    );
 
+    })
+	res.redirect("/customers");
+};
+
+
+exports.export_customers = (req, res) => {
+
+	client.execute('SELECT * FROM people.subscribers ',[], function(err, result){
+		if(err){
+			console.log('customers: list err:', err);
+			res.status(404).send({msg: err});
+		} else {
+			try {
+				fs.writeFileSync("data.json", JSON.stringify(result.rows));
+				console.log("Done writing to file.");
+				res.redirect('/customers')
+			  } catch (err) {
+				console.log("Error writing to file", err);
+			  }
+		}
+	});
+
+
+}
+
+
+	// Userdb.collection.find().toArray((err, data) => {
+	//   try {
+	// 	fs.writeFileSync("data.json", JSON.stringify(data));
+	// 	console.log("Done writing to file.");
+	// 	res.redirect('/')
+	//   } catch (err) {
+	// 	console.log("Error writing to file", err);
+	//   }
+	// });
+	
